@@ -1,9 +1,9 @@
 # VQGraph: Graph Vector-Quantization for Bridging GNNs and MLPs
-<a href="https://arxiv.org/abs/2308.02117"><img src="https://img.shields.io/badge/arXiv-2308.02117-brown.svg" height=22.5></a>
+<a href="https://arxiv.org/pdf/2308.02117.pdf"><img src="https://img.shields.io/badge/arXiv-2308.02117-brown.svg" height=22.5></a>
 
-This repository is the official implementation of [VQGraph](). VQGraph is the state-of-the-art (SOTA) GNN-to-MLP distillation method.
+This repository is the official implementation of [VQGraph](https://arxiv.org/pdf/2308.02117.pdf). VQGraph is the state-of-the-art (SOTA) GNN-to-MLP distillation method.
 
-[VQGraph: Graph Vector-Quantization for Bridging GNNs and MLPs]().
+[VQGraph: Graph Vector-Quantization for Bridging GNNs and MLPs](https://arxiv.org/pdf/2308.02117.pdf).
 
 Authors: Ling Yang, Ye Tian, Minkai Xu, Zhongyi Liu, Shenda Hong, Wei Qu, Wentao Zhang, Bin Cui, Muhan Zhang, Jure Leskovec
 
