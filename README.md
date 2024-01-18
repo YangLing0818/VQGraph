@@ -1,9 +1,10 @@
-# VQGraph: Rethinking Graph Representation Space for Bridging GNNs and MLPs
+# ICLR 2024 - VQGraph: Rethinking Graph Representation Space for Bridging GNNs and MLPs
 <a href="https://arxiv.org/pdf/2308.02117.pdf"><img src="https://img.shields.io/badge/arXiv-2308.02117-brown.svg" height=22.5></a>
 
-This repository is the official implementation of [VQGraph](https://arxiv.org/pdf/2308.02117.pdf). VQGraph is the state-of-the-art (SOTA) GNN-to-MLP distillation method.
+This repository is the official implementation of [VQGraph](https://openreview.net/forum?id=h6Tz85BqRI) [ICLR 2024]. 
+VQGraph is the state-of-the-art (SOTA) GNN-to-MLP distillation method.
 
-[VQGraph: Rethinking Graph Representation Space for Bridging GNNs and MLPs](https://arxiv.org/pdf/2308.02117.pdf).
+[VQGraph: Rethinking Graph Representation Space for Bridging GNNs and MLPs](https://openreview.net/forum?id=h6Tz85BqRI).
 
 Authors: Ling Yang, Ye Tian, Minkai Xu, Zhongyi Liu, Shenda Hong, Wei Qu, Wentao Zhang, Bin Cui, Muhan Zhang, Jure Leskovec
 
@@ -22,8 +23,8 @@ Authors: Ling Yang, Ye Tian, Minkai Xu, Zhongyi Liu, Shenda Hong, Wei Qu, Wentao
 ## TODO
 ---
 
-- [ ] Release the code of graph tokenizer training
-- [ ] Release the code of parallel training
+- [ ] Release the code of graph tokenizer training - 2024.2
+- [ ] Release the code of parallel training - 2024.2
 
 ## Requirements 
 ---
