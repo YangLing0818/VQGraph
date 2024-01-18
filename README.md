@@ -1,7 +1,7 @@
 # ICLR 2024 - VQGraph: Rethinking Graph Representation Space for Bridging GNNs and MLPs
 <a href="https://arxiv.org/pdf/2308.02117.pdf"><img src="https://img.shields.io/badge/arXiv-2308.02117-brown.svg" height=22.5></a>
 
-This repository is the official implementation of [VQGraph](https://openreview.net/forum?id=h6Tz85BqRI) [ICLR 2024]. 
+This repository is the official implementation of [VQGraph](https://openreview.net/forum?id=h6Tz85BqRI) **(ICLR 2024)**. 
 VQGraph is the state-of-the-art (SOTA) GNN-to-MLP distillation method.
 
 [VQGraph: Rethinking Graph Representation Space for Bridging GNNs and MLPs](https://openreview.net/forum?id=h6Tz85BqRI).
