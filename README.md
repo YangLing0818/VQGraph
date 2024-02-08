@@ -1,30 +1,28 @@
 # ICLR 2024 - VQGraph: Rethinking Graph Representation Space for Bridging GNNs and MLPs
-<a href="https://arxiv.org/pdf/2308.02117.pdf"><img src="https://img.shields.io/badge/arXiv-2308.02117-brown.svg" height=22.5></a>
+<a href="https://openreview.net/forum?id=h6Tz85BqRI"><img src="https://img.shields.io/badge/ICLR-2024-brown.svg" height=22.5></a>
 
 This repository is the official implementation of [VQGraph](https://openreview.net/forum?id=h6Tz85BqRI) **(ICLR 2024)**. 
 VQGraph is the state-of-the-art (SOTA) GNN-to-MLP distillation method.
 
-[VQGraph: Rethinking Graph Representation Space for Bridging GNNs and MLPs](https://openreview.net/forum?id=h6Tz85BqRI).
-
-Authors: Ling Yang, Ye Tian, Minkai Xu, Zhongyi Liu, Shenda Hong, Wei Qu, Wentao Zhang, Bin Cui, Muhan Zhang, Jure Leskovec
-
+>[**VQGraph: Rethinking Graph Representation Space for Bridging GNNs and MLPs**](https://openreview.net/forum?id=h6Tz85BqRI).  
+>[Ling Yang](https://yangling0818.github.io/), 
+>[Ye Tian](),
+>[Minkai Xu](https://minkaixu.com/),
+>[Zhongyi Liu](),
+>[Shenda Hong](https://hsd1503.github.io/),
+>[Wei Qu](),
+>[Wentao Zhang](https://zwt233.github.io/),
+>[Bin Cui](https://cuibinpku.github.io/),
+>[Muhan Zhang](https://muhanzhang.github.io/),
+>[Jure Leskovec](https://cs.stanford.edu/~jure/)
+<br>**Peking University, Stanford University**<br>
 
 
 ## Overview
 ---
 ![Alt text](image.png)
 
-
-## Updates
----
-
-- [04/08/2023] Code released
-
-## TODO
----
-
-- [ ] Release the code of graph tokenizer training - 2024.2
-- [ ] Release the code of parallel training - 2024.2
+**Abstract**: GNN-to-MLP distillation aims to utilize knowledge distillation (KD) to learn computationally-efficient multi-layer perceptron (student MLP) on graph data by mimicking the output representations of teacher GNN. Existing methods mainly make the MLP to mimic the GNN predictions over a few class labels. However, the class space may not be expressive enough for covering numerous diverse local graph structures, thus limiting the performance of knowledge transfer from GNN to MLP. To address this issue, we propose to learn a new powerful graph representation space by directly labeling nodes' diverse local structures for GNN-to-MLP distillation. Specifically, we propose a variant of VQ-VAE to learn a structure-aware tokenizer on graph data that can encode each node's local substructure as a discrete code. The discrete codes constitute a codebook as a new graph representation space that is able to identify different local graph structures of nodes with the corresponding code indices. Then, based on the learned codebook, we propose a new distillation target, namely soft code assignments, to directly transfer the structural knowledge of each node from GNN to MLP. The resulting framework VQGraph achieves new state-of-the-art performance on GNN-to-MLP distillation in both transductive and inductive settings across seven graph datasets. We show that VQGraph with better performance infers faster than GNNs by 828×, and also achieves accuracy improvement over GNNs and stand-alone MLPs by 3.90% and 28.05% on average, respectively.
 
 
 ## Preparation
@@ -59,13 +57,13 @@ Please download the datasets, and put them under `data/` (see below for instruct
 ## Training and Evaluation
 ---
 
-**Teacher Model**: Our pretrained codebook embeddings, teacher soft assignments and teacher soft labels for some datasets have been uploaded to [here](https://www.dropbox.com/scl/fo/9yss598aln21gzdiwix61/h?dl=0&rlkey=oscheo12z9md8uah7eakq62yj). Please download and put them under `outputs/transductive/{dataset}/GCN/` for GNN-MLP distillation.
-
-To quickly reproduce our teacher model, you can run `train_teacher.py` as the following example command:
+**Graph Tokenizer Training**: 
+To quickly reproduce our teacher model and graph tokenizer, you can run `train_teacher.py` as the following example command:
 ```
 python train_teacher.py --exp_setting tran --teacher GCN --dataset citeseer --output_path outputs --seed 0 --max_epoch 100 --patience 50 --device 0
 ```
 
+Our pretrained codebook embeddings, teacher soft assignments and teacher soft labels for some datasets have been uploaded to [here](https://www.dropbox.com/scl/fo/9yss598aln21gzdiwix61/h?dl=0&rlkey=oscheo12z9md8uah7eakq62yj). Please download and put them under `outputs/transductive/{dataset}/GCN/` for GNN-MLP distillation.
 
 **GNN-to-MLP Distillation**: After training the teacher model, you can run `train_student.py` for our distillation process by specifying the experiment setting, including teacher model, student model, output path of the teacher model and dataset like the following example command: 
 
