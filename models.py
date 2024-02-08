@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from dgl.nn import GraphConv, SAGEConv, APPNPConv, GATConv
+from vq import VectorQuantize
 
 
 class MLP(nn.Module):
@@ -70,7 +71,10 @@ class SAGE(nn.Module):
         output_dim,
         dropout_ratio,
         activation,
-        norm_type="none",
+        norm_type,
+        codebook_size,
+        lamb_edge,
+        lamb_node
     ):
         super().__init__()
         self.num_layers = num_layers
@@ -159,7 +163,10 @@ class GCN(nn.Module):
         output_dim,
         dropout_ratio,
         activation,
-        norm_type="none",
+        norm_type,
+        codebook_size,
+        lamb_edge,
+        lamb_node
     ):
         super().__init__()
         self.num_layers = num_layers
@@ -167,38 +174,41 @@ class GCN(nn.Module):
         self.dropout = nn.Dropout(dropout_ratio)
         self.layers = nn.ModuleList()
         self.norms = nn.ModuleList()
-
-        if num_layers == 1:
-            self.layers.append(GraphConv(input_dim, output_dim, activation=activation))
-        else:
-            self.layers.append(GraphConv(input_dim, hidden_dim, activation=activation))
-            if self.norm_type == "batch":
-                self.norms.append(nn.BatchNorm1d(hidden_dim))
-            elif self.norm_type == "layer":
-                self.norms.append(nn.LayerNorm(hidden_dim))
-
-            for i in range(num_layers - 2):
-                self.layers.append(
-                    GraphConv(hidden_dim, hidden_dim, activation=activation)
-                )
-                if self.norm_type == "batch":
-                    self.norms.append(nn.BatchNorm1d(hidden_dim))
-                elif self.norm_type == "layer":
-                    self.norms.append(nn.LayerNorm(hidden_dim))
-
-            self.layers.append(GraphConv(hidden_dim, output_dim))
+        self.graph_layer_1 = GraphConv(input_dim, input_dim, activation=activation)
+        self.graph_layer_2 = GraphConv(input_dim, hidden_dim, activation=activation)
+        self.decoder_1 = nn.Linear(input_dim, input_dim)
+        self.decoder_2 = nn.Linear(input_dim, input_dim)
+        self.linear = nn.Linear(hidden_dim, output_dim)
+        self.vq = VectorQuantize(dim=input_dim, codebook_size=codebook_size, decay=0.8,commitment_weight=0.25, use_cosine_sim = True)
+        self.lamb_edge = lamb_edge
+        self.lamb_node = lamb_node
 
     def forward(self, g, feats):
         h = feats
+        adj = g.adjacency_matrix().to_dense().to(feats.device)
         h_list = []
-        for l, layer in enumerate(self.layers):
-            h = layer(g, h)
-            if l != self.num_layers - 1:
-                h_list.append(h)
-                if self.norm_type != "none":
-                    h = self.norms[l](h)
-                h = self.dropout(h)
-        return h_list, h
+        h = self.graph_layer_1(g, h)
+        if self.norm_type != "none":
+            h = self.norms[0](h)
+        h = self.dropout(h)
+        h_list.append(h)
+        quantized, _, commit_loss, dist, codebook = self.vq(h)
+        quantized_edge = self.decoder_1(quantized)
+        quantized_node = self.decoder_2(quantized)
+
+        feature_rec_loss = self.lamb_node * F.mse_loss(h, quantized_node)
+        adj_quantized = torch.matmul(quantized_edge, quantized_edge.t())
+        adj_quantized = (adj_quantized - adj_quantized.min()) / (adj_quantized.max() - adj_quantized.min())
+        edge_rec_loss = self.lamb_edge * torch.sqrt(F.mse_loss(adj, adj_quantized))
+
+        dist = torch.squeeze(dist)
+        h_list.append(quantized)
+        h = self.graph_layer_2(g, quantized_edge)
+        h_list.append(h)
+        h = self.linear(h)
+        loss = feature_rec_loss + edge_rec_loss + commit_loss
+        
+        return h_list, h, loss, dist, codebook
 
 
 class GAT(nn.Module):
@@ -372,6 +382,9 @@ class Model(nn.Module):
                 dropout_ratio=conf["dropout_ratio"],
                 activation=F.relu,
                 norm_type=conf["norm_type"],
+                codebook_size=conf["codebook_size"],
+                lamb_edge=conf["lamb_edge"],
+                lamb_node=conf["lamb_node"]
             ).to(conf["device"])
         elif "GCN" in conf["model_name"]:
             self.encoder = GCN(
@@ -382,6 +395,9 @@ class Model(nn.Module):
                 dropout_ratio=conf["dropout_ratio"],
                 activation=F.relu,
                 norm_type=conf["norm_type"],
+                codebook_size=conf["codebook_size"],
+                lamb_edge=conf["lamb_edge"],
+                lamb_node=conf["lamb_node"]
             ).to(conf["device"])
         elif "GAT" in conf["model_name"]:
             self.encoder = GAT(

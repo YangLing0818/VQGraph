@@ -17,9 +17,9 @@ def train(model, data, feats, labels, criterion, optimizer, idx_train, lamb=1):
     model.train()
 
     # Compute loss and prediction
-    logits = model(data, feats)
+    _, logits, loss, dist, codebooklogits = model(data, feats)
     out = logits.log_softmax(dim=1)
-    loss = criterion(out[idx_train], labels[idx_train])
+    loss += criterion(out[idx_train], labels[idx_train])
     loss_val = loss.item()
 
     loss *= lamb
@@ -140,7 +140,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
     """
     model.eval()
     with torch.no_grad():
-        logits = model.inference(data, feats)
+        h_list, logits, loss, dist, codebook = model.inference(data, feats)
         out = logits.log_softmax(dim=1)
         if idx_eval is None:
             loss = criterion(out, labels)
@@ -148,7 +148,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
         else:
             loss = criterion(out[idx_eval], labels[idx_eval])
             score = evaluator(out[idx_eval], labels[idx_eval])
-    return out, loss.item(), score
+    return out, loss.item(), score, h_list, dist, codebook
 
 
 def evaluate_mini_batch(
@@ -281,7 +281,7 @@ def run_transductive(
                     model, feats_test, labels_test, criterion, batch_size, evaluator
                 )
             else:
-                out, loss_train, score_train = evaluate(
+                out, loss_train, score_train,  h_list, dist, codebook = evaluate(
                     model, data_eval, feats, labels, criterion, evaluator, idx_train
                 )
                 loss_val = criterion(out[idx_val], labels[idx_val]).item()
@@ -289,7 +289,7 @@ def run_transductive(
                 loss_test = criterion(out[idx_test], labels[idx_test]).item()
                 acc = evaluator(out[idx_test], labels[idx_test])
 
-            logger.debug(
+            logger.info(
                 f"Ep {epoch:3d} | loss: {loss:.4f} | s_train: {score_train:.4f} | s_val: {score_val:.4f} | s_test: {acc:.4f}"
             )
             loss_and_score += [
@@ -321,15 +321,15 @@ def run_transductive(
             model, feats, labels, criterion, batch_size, evaluator, idx_val
         )
     else:
-        out, _, score_val = evaluate(
+        out, _, score_val, h_list, dist, codebook = evaluate(
             model, data_eval, feats, labels, criterion, evaluator, idx_val
         )
 
     acc = evaluator(out[idx_test], labels[idx_test])
     logger.info(
-        f"Best valid model at epoch: {best_epoch: 3d}, score_val: {score_val :.4f}, acc: {acc :.4f}"
+        f"Best valid model at epoch: {best_epoch: 3d}, acc: {acc :.4f}"
     )
-    return out, score_val, acc
+    return out, score_val, acc, h_list, dist, codebook
 
 
 def run_inductive(
@@ -474,7 +474,7 @@ def run_inductive(
                     evaluator,
                 )
             else:
-                obs_out, loss_train, score_train = evaluate(
+                obs_out, loss_train, score_train, h_list, dist, codebook = evaluate(
                     model,
                     obs_data_eval,
                     obs_feats,
@@ -495,7 +495,7 @@ def run_inductive(
                 )
 
                 # Evaluate the inductive part with the full graph
-                out, loss_test_ind, acc_ind = evaluate(
+                out, loss_test_ind, acc_ind, h_list, dist, codebook = evaluate(
                     model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
                 )
             logger.info(
@@ -535,7 +535,7 @@ def run_inductive(
         )
 
     else:
-        obs_out, _, score_val = evaluate(
+        obs_out, _, score_val, h_list, dist, codebook = evaluate(
             model,
             obs_data_eval,
             obs_feats,
@@ -544,16 +544,16 @@ def run_inductive(
             evaluator,
             obs_idx_val,
         )
-        out, _, acc_ind = evaluate(
+        out, _, acc_ind, h_list, dist, codebook = evaluate(
             model, data_eval, feats, labels, criterion, evaluator, idx_test_ind
         )
 
     acc_tran = evaluator(obs_out[obs_idx_test], obs_labels[obs_idx_test])
     out[idx_obs] = obs_out
     logger.info(
-        f"Best valid model at epoch: {best_epoch :3d}, score_val: {score_val :.4f}, acc_tran: {acc_tran :.4f}, acc_ind: {acc_ind :.4f}"
+        f"Best valid model at epoch: {best_epoch :3d}, acc_tran: {acc_tran :.4f}, acc_ind: {acc_ind :.4f}"
     )
-    return out, score_val, acc_tran, acc_ind
+    return out, score_val, acc_tran, acc_ind, h_list, dist, codebook
 
 
 """
@@ -703,6 +703,8 @@ def distill_run_inductive(
     feats = feats.to(device)
     labels = labels.to(device)
     out_t_all = out_t_all.to(device)
+    out_codebook_embeddings = out_codebook_embeddings.to(device)
+    out_tea_soft_token_assignments = out_tea_soft_token_assignments.to(device)
     obs_feats = feats[idx_obs]
     obs_labels = labels[idx_obs]
     obs_out_t = out_t_all[idx_obs]
@@ -716,7 +718,7 @@ def distill_run_inductive(
     )
     feats_test_ind, labels_test_ind = feats[idx_test_ind], labels[idx_test_ind]
 
-    best_acc, count = 0, 0, 0
+    best_acc, count = 0, 0
     for epoch in range(1, conf["max_epoch"] + 1):
         # soft token assignments distillation
         loss_token = train_mini_batch_token(

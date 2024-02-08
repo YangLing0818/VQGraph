@@ -26,7 +26,18 @@ Authors: Ling Yang, Ye Tian, Minkai Xu, Zhongyi Liu, Shenda Hong, Wei Qu, Wentao
 - [ ] Release the code of graph tokenizer training - 2024.2
 - [ ] Release the code of parallel training - 2024.2
 
-## Requirements 
+
+## Preparation
+---
+```bash
+conda create -n vqgraph python=3.9
+conda activate vqgraph
+pip install -r requirements.txt
+```
+
+<!-- ## Requirements 
+
+
 ---
 * torch >= 1.7.0
 * ogb >= 1.3.3
@@ -35,6 +46,7 @@ Authors: Ling Yang, Ye Tian, Minkai Xu, Zhongyi Liu, Shenda Hong, Wei Qu, Wentao
 * googledrivedownloader >= 0.4
 * category_encoders >= 2.3.0
 * einops >= 0.6.0
+* pyyaml -->
 
 ## Datasets
 ---
@@ -49,8 +61,13 @@ Please download the datasets, and put them under `data/` (see below for instruct
 
 **Teacher Model**: Our pretrained codebook embeddings, teacher soft assignments and teacher soft labels for some datasets have been uploaded to [here](https://www.dropbox.com/scl/fo/9yss598aln21gzdiwix61/h?dl=0&rlkey=oscheo12z9md8uah7eakq62yj). Please download and put them under `outputs/transductive/{dataset}/GCN/` for GNN-MLP distillation.
 
+To quickly reproduce our teacher model, you can run `train_teacher.py` as the following example command:
+```
+python train_teacher.py --exp_setting tran --teacher GCN --dataset citeseer --output_path outputs --seed 0 --max_epoch 100 --patience 50 --device 0
+```
 
-**GNN-to-MLP Distillation**: To quickly reproduce our VQGraph, you can run `train_student.py` by specifying the experiment setting, including teacher model, student model, output path of the teacher model and dataset like the following example command: 
+
+**GNN-to-MLP Distillation**: After training the teacher model, you can run `train_student.py` for our distillation process by specifying the experiment setting, including teacher model, student model, output path of the teacher model and dataset like the following example command: 
 
 ```
 python train_student.py --exp_setting tran --teacher GCN --student MLP --dataset citeseer --out_t_path outputs --seed 0 --max_epoch 500 --patience 50 --device 0
