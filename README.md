@@ -70,8 +70,7 @@ python train_student.py --exp_setting tran --teacher GCN --student MLP --dataset
 ## Citation
 If you found the codes are useful, please cite our paper
 ```
-@inproceedings{
-yang2024vqgraph,
+@inproceedings{yang2024vqgraph,
 title={VQGraph: Rethinking Graph Representation Space for Bridging GNNs and MLPs},
 author={Ling Yang and Ye Tian and Minkai Xu and Zhongyi Liu and Shenda Hong and Wei Qu and Wentao Zhang and Bin CUI and Muhan Zhang and Jure Leskovec},
 booktitle={International Conference on Learning Representations},
