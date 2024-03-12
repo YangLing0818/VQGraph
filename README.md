@@ -63,7 +63,7 @@ Please download the datasets, and put them under `data/` (see below for instruct
 ## Training and Evaluation
 
 **About GraphSage**
-Our GraphSage implementation primarily utilizes the  MultiLayerNeighborSampler in GraphSage data preparation, which internally employs local GCN. While both GraphSage and GCN can yield consistent results, we recommend using GCN as it tends to be easier to reproduce. GraphSage may require tweaking of more hyperparameters compared to GCN.
+Our GraphSage implementation primarily utilizes the  MultiLayerNeighborSampler in GraphSage data preparation, which internally employs local GCN. While both GraphSage and GCN can yield consistent results, we recommend using GCN as it tends to be easier to reproduce. GraphSage may require tweaking of **more rounds of parameter tuning** compared to GCN.
 
 
 **Graph Tokenizer Training**: 
