@@ -77,7 +77,7 @@ def get_args():
     )
 
     """VQGraph"""
-    parser.add_argument("--codebook_size", type=int, default=2048, help="Codebook size of VQGraph")
+    parser.add_argument("--codebook_size", type=int, default=5000, help="Codebook size of VQGraph")
     parser.add_argument("--lamb_node", type=float, default=0.001)
     parser.add_argument("--lamb_edge",  type=float, default=0.03)
 
@@ -307,12 +307,10 @@ def run(args):
     # print(batch_dist.shape)
     """ Saving teacher outputs """
     out_np = out.detach().cpu().numpy()
-    # out_vq = h_list[0].detach().cpu().numpy()
     out_codebook = codebook.detach().cpu().numpy()
     out_emb = h_list[0].detach().cpu().numpy()
     dist_vq = dist.detach().cpu().numpy()
     np.savez(output_dir.joinpath("tea_soft_labels"), out_np)
-    # np.savez(output_dir.joinpath("vq"), out_vq)
     np.savez(output_dir.joinpath("codebook_embeddings"), out_codebook)
     np.savez(output_dir.joinpath("out_emb_list"), out_emb)
     np.savez_compressed(output_dir.joinpath("tea_soft_token_assignments"), dist_vq)

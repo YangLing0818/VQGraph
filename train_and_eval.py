@@ -43,9 +43,11 @@ def train_sage(model, dataloader, feats, labels, criterion, optimizer, lamb=1):
         batch_labels = labels[output_nodes]
 
         # Compute loss and prediction
-        logits = model(blocks, batch_feats)
+        _, logits, loss , _ , _= model(blocks, batch_feats)
         out = logits.log_softmax(dim=1)
-        loss = criterion(out, batch_labels)
+        # print(loss)
+        loss += criterion(out, batch_labels)
+        # print(loss)
         total_loss += loss.item()
 
         loss *= lamb
@@ -140,7 +142,7 @@ def evaluate(model, data, feats, labels, criterion, evaluator, idx_eval=None):
     """
     model.eval()
     with torch.no_grad():
-        h_list, logits, loss, dist, codebook = model.inference(data, feats)
+        h_list, logits, _ , dist, codebook = model.inference(data, feats)
         out = logits.log_softmax(dim=1)
         if idx_eval is None:
             loss = criterion(out, labels)
@@ -225,7 +227,7 @@ def run_transductive(
         sampler = dgl.dataloading.MultiLayerNeighborSampler(
             [eval(fanout) for fanout in conf["fan_out"].split(",")]
         )
-        dataloader = dgl.dataloading.NodeDataLoader(
+        dataloader = dgl.dataloading.DataLoader(
             g,
             idx_train,
             sampler,
@@ -237,7 +239,7 @@ def run_transductive(
 
         # SAGE inference is implemented as layer by layer, so the full-neighbor sampler only collects one-hop neighbors.
         sampler_eval = dgl.dataloading.MultiLayerFullNeighborSampler(1)
-        dataloader_eval = dgl.dataloading.NodeDataLoader(
+        dataloader_eval = dgl.dataloading.DataLoader(
             g,
             torch.arange(g.num_nodes()),
             sampler_eval,

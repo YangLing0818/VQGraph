@@ -62,11 +62,16 @@ Please download the datasets, and put them under `data/` (see below for instruct
 
 ## Training and Evaluation
 
+**About GraphSage**
+Our GraphSage implementation primarily utilizes the  MultiLayerNeighborSampler in GraphSage data preparation, and we use a local GCN internally. While both GraphSage and GCN can yield consistent results, we recommend using GCN as it tends to be easier to reproduce. GraphSage may require tweaking of more hyperparameters compared to GCN.
+
+
 **Graph Tokenizer Training**: 
 To quickly reproduce our teacher model and graph tokenizer, you can run `train_teacher.py` as the following example command:
 ```
 python train_teacher.py --exp_setting tran --teacher GCN --dataset citeseer --output_path outputs --seed 0 --max_epoch 100 --patience 50 --device 0
 ```
+
 
 Our pretrained codebook embeddings, teacher soft assignments and teacher soft labels for some datasets have been uploaded to [here](https://www.dropbox.com/scl/fo/9yss598aln21gzdiwix61/h?dl=0&rlkey=oscheo12z9md8uah7eakq62yj). Please download and put them under `outputs/transductive/{dataset}/GCN/` for GNN-MLP distillation.
 
